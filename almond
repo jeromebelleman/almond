@@ -1,0 +1,52 @@
+#! /usr/bin/env python
+
+'''
+Edit JSON as YAML
+'''
+
+import sys, os
+import argparse
+import json
+import yaml
+import subprocess
+import tempfile
+
+def main():
+    '''
+    Main
+    '''
+
+    # Arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('jsonfile', type=os.path.expanduser)
+    args = parser.parse_args()
+
+    # Read JSON file
+    with open(args.jsonfile) as fhl:
+        data = json.load(fhl)
+
+    # Create directories
+    dirpath = os.path.expanduser('~/.almond/tmp')
+    try:
+        os.makedirs(dirpath)
+    except OSError:
+        pass
+    tmp = tempfile.NamedTemporaryFile(dir=dirpath)
+
+    # Write YAML file
+    with open(tmp.name, 'w') as fhl:
+        yaml.safe_dump(data, tmp, default_flow_style=False)
+
+    # Start Vim
+    subprocess.call(['vim', '+set fdm=indent sw=2', tmp.name])
+
+    # Read YAML file
+    with open(tmp.name) as fhl:
+        data = yaml.safe_load(fhl)
+
+    # Write JSON file
+    with open(args.jsonfile, 'w') as fhl:
+        json.dump(data, fhl, indent=2)
+
+if __name__ == '__main__':
+    sys.exit(main())
